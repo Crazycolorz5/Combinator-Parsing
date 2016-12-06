@@ -63,12 +63,6 @@ parseMulOp = parseAnyChar >>= \c -> case c of
         '/' -> return Divide
         otherwise -> fail ""
 
-parseChar::Char -> Parser String Char
-parseChar c = Parser {tryParse = \input -> case input of
-                            (x:xs) -> if x == c then Just (xs, x) else Nothing
-                            otherwise -> Nothing }
-
-
 evaluateE::Expression -> Rational
 evaluateE (Expression (Left (t, op, e))) = let g = case op of Add -> (+); Subtract -> (-) in
     g (evaluateT t) (evaluateE e)
