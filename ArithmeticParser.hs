@@ -4,6 +4,8 @@ import Parser
 import Control.Monad.Fail
 import Prelude hiding (fail)
 
+--Very well known CFG (note it is right recursive)
+--Tuples and Either should be used to integrate well with <&> and <|>
 data Expression = Expression    (Either     (Term, SumOp, Expression)   Term)
 data Term       = Term          (Either     (Factor, MulOp, Term)       Factor)
 data Factor     = Factor        (Either     Expression                  Number)
@@ -13,6 +15,7 @@ newtype Digit   = Digit         Int
 data SumOp = Add | Subtract
 data MulOp = Multiply | Divide
 
+--The overall parser.
 parse::String -> Maybe Expression
 parse = getResult . tryParse parseExpression
 
