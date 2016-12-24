@@ -47,6 +47,14 @@ getResult::Maybe (a, b) -> Maybe b
 getResult = fmap snd
 --Discards remainder of the source.
 
+kleeneStar::Parser a b -> Parser a [b]
+kleeneStar parse = flip fmap ((parse <&> kleeneStar parse) <|> emptyParse) (\result -> case result of
+    Right _ -> []
+    Left (e, es) -> e : es)
+
+emptyParse::Parser a ()
+emptyParse = Parser {tryParse = \input -> Just (input, ())}
+
 parseAnyElem::Parser [a] a
 parseAnyElem = Parser {tryParse = \input -> case input of
                             (x:xs) -> Just (xs, x)
@@ -59,13 +67,18 @@ parseElem c = Parser {tryParse = \input -> case input of
                             otherwise -> Nothing }
 --Parses only for a specific element and fails otherwise.
 
+parseSequence::(Eq a) => [a] -> Parser [a] [a]
+parseSequence word = (foldl (\acc e -> acc >> (parseChar e >> emptyParse)) emptyParse word) >> return word
 
 --Above functions type constrained to Char.
 parseAnyChar::Parser String Char
 parseAnyChar = parseAnyElem
 
-parseChar::Parser String Char
+parseChar::Char -> Parser String Char
 parseChar = parseElem
+
+parseWord::String -> Parser String String
+parseWord = parseSequence
 
 {-
 --Failed previous implementation
