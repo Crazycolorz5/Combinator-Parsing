@@ -48,12 +48,16 @@ getResult = fmap snd
 --Discards remainder of the source.
 
 kleeneStar::Parser a b -> Parser a [b]
-kleeneStar parse = flip fmap ((parse <&> kleeneStar parse) <|> emptyParse) (\result -> case result of
-    Right _ -> []
-    Left (e, es) -> e : es)
+kleeneStar parse = fmap (either (uncurry (:)) (const [])) ((parse <&> kleeneStar parse) <|> emptyParse)
+--Turns a parser into a parser for the kleene star of the original expression (with the result in a list)
+
+optional::Parser a b -> Parser a (Maybe b)
+optional p = fmap (either Just (const Nothing)) $ p <|> emptyParse
+--Functionally equivalent to a grammar of p | epsilon. Wraps the result in a Maybe.
 
 emptyParse::Parser a ()
 emptyParse = Parser {tryParse = \input -> Just (input, ())}
+--Takes nothing from the input, and returns unit.
 
 parseAnyElem::Parser [a] a
 parseAnyElem = Parser {tryParse = \input -> case input of
