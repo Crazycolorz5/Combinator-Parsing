@@ -68,7 +68,7 @@ parseElem c = Parser {tryParse = \input -> case input of
 --Parses only for a specific element and fails otherwise.
 
 parseSequence::(Eq a) => [a] -> Parser [a] [a]
-parseSequence word = (foldl (\acc e -> acc >> (parseChar e >> emptyParse)) emptyParse word) >> return word
+parseSequence word = (foldl (\acc e -> acc >> (parseElem e >> emptyParse)) emptyParse word) >> return word
 
 --Above functions type constrained to Char.
 parseAnyChar::Parser String Char
