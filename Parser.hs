@@ -42,6 +42,15 @@ pb <|> pc = Parser {tryParse = \input -> case tryParse pb input of
                                Just (aRes, bRes) -> Just (aRes, Left bRes) }
 infixl 2 <|>
 --Parse one thing, and if that fails, then try to parse the other thing.
+    
+(<||>)::Parser a b -> Parser a b -> Parser a b 
+pb <||> pc = Parser {tryParse = \input -> case tryParse pb input of
+                               Nothing -> case tryParse pc input of
+                                    Nothing -> Nothing
+                                    Just (aRes, cRes) -> Just (aRes, cRes)
+                               Just (aRes, bRes) -> Just (aRes, bRes) }
+infixl 2 <||>
+--Like <|> but for two parsers of the same type.
 
 getResult::Maybe (a, b) -> Maybe b
 getResult = fmap snd
