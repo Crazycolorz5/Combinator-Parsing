@@ -69,11 +69,11 @@ getResult = fmap snd
 --Discards remainder of the source.
 
 kleeneStar::Parser a b -> Parser a [b]
-kleeneStar parse = fmap (either (uncurry (:)) (const [])) ((parse <&> kleeneStar parse) <|> emptyParse)
+kleeneStar parse = fmap (either (uncurry (:)) (const [])) ((parse <&> kleeneStar parse) `parseEither` emptyParse)
 --Turns a parser into a parser for the kleene star of the original expression (with the result in a list)
 
 optional::Parser a b -> Parser a (Maybe b)
-optional p = fmap (either Just (const Nothing)) $ p <|> emptyParse
+optional p = fmap (either Just (const Nothing)) $ p `parseEither` emptyParse
 --Functionally equivalent to a grammar of p | epsilon. Wraps the result in a Maybe.
 
 emptyParse::Parser a ()
