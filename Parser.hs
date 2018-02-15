@@ -1,6 +1,6 @@
 module Parser where
 
-import Control.Arrow (second)
+import Control.Arrow (first, second)
 import Control.Monad.Fail (MonadFail, fail)
 import Control.Monad (MonadPlus, mzero, mplus, guard)
 import Control.Applicative (Alternative)
@@ -68,9 +68,13 @@ getResult::Maybe (a, b) -> Maybe b
 getResult = fmap snd
 --Discards remainder of the source.
 
+kleeneStarThen :: Parser a b -> Parser a c -> Parser a ([b], c)
+kleeneStarThen parse1 parse2 = fmap (either (\(res1, (resList, end)) -> (res1:resList, end)) (\x->([], x))) ((parse1 <&> kleeneStarThen parse1 parse2) `parseEither` parse2)
+--Turns a parser into a parser for the kleene star of the original expression (with the result in a list), followed by the given parser.
+
 kleeneStar::Parser a b -> Parser a [b]
-kleeneStar parse = fmap (either (uncurry (:)) (const [])) ((parse <&> kleeneStar parse) `parseEither` emptyParse)
---Turns a parser into a parser for the kleene star of the original expression (with the result in a list)
+kleeneStar = fmap fst . flip kleeneStarThen emptyParse
+--A simple greedy kleeneStar that takes as many instances of the parse as possible.
 
 optional::Parser a b -> Parser a (Maybe b)
 optional p = fmap (either Just (const Nothing)) $ p `parseEither` emptyParse
